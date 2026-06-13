@@ -1,0 +1,27 @@
+unmanaged implementation in class zbp_r_saleorder_header unique;
+strict ( 2 );
+
+define behavior for ZR_Saleorder_Header //alias <alias_name>
+//late numbering
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) Souuid;
+  association _ITEM { create; }
+}
+
+define behavior for Zr_saleorder_item //alias <alias_name>
+//late numbering
+lock dependent by _HEADER
+authorization dependent by _HEADER
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) itemuuid , Parentid;
+  association _HEADER;
+}

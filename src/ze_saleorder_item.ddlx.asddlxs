@@ -1,0 +1,122 @@
+@Metadata.layer: #CORE
+
+@UI: { 
+  headerInfo: { 
+    typeName: 'Item', 
+    typeNamePlural: 'Items', 
+    title: { type: #STANDARD, value: 'Posnr' }, 
+    description: { type: #STANDARD, value: 'Vbeln' } 
+  } 
+  
+}
+
+annotate entity zc_saleorder_item with 
+{
+
+  @UI.facet: [
+    
+    /* ====================================================================
+       1. HEADER FACET (Appears at the very top, next to the Title)
+       ==================================================================== */
+    { 
+      id:              'HeaderInfo', 
+      purpose:         #HEADER, 
+      type:            #FIELDGROUP_REFERENCE, 
+      targetQualifier: 'HeaderGroup' 
+    },
+
+    /* ====================================================================
+       2. IDENTIFICATION REFERENCE (Appears in the main body tabs)
+       ==================================================================== */
+    { 
+      id:              'GeneralInfo', 
+      purpose:         #STANDARD, 
+      type:            #IDENTIFICATION_REFERENCE, 
+      label:           'General Information',
+      position:        10 
+    },
+
+    /* ====================================================================
+       3. FIELDGROUP REFERENCES (Appears in the main body tabs)
+       ==================================================================== */
+    { 
+      id:              'PricingInfo', 
+      purpose:         #STANDARD, 
+      type:            #FIELDGROUP_REFERENCE, 
+      targetQualifier: 'PricingGroup',
+      label:           'Pricing Details',
+      position:        20 
+    },
+    { 
+      id:              'AdminInfo', 
+      purpose:         #STANDARD, 
+      type:            #FIELDGROUP_REFERENCE, 
+      targetQualifier: 'AdminGroup',
+      label:           'Administrative Data',
+      position:        30 
+    }
+  ]
+
+  /* --- FIELDS MAPPED TO IDENTIFICATION --- */
+  
+  @UI: { 
+    lineItem:       [{ position: 10, label: 'Item Number' }], 
+    identification: [{ position: 10, label: 'Item Number' }] 
+  }
+  Posnr;
+  
+  @UI: { 
+    lineItem:       [{ position: 50, label: 'Quantity' }],
+    identification: [{ position: 20, label: 'Quantity' }] 
+  }   
+  Kwmeng;
+
+  /* --- FIELDS MAPPED TO THE HEADER FACET --- */
+  
+  @UI: { 
+    lineItem:       [{ position: 20, label: 'Plant' }],
+    fieldGroup:     [{ qualifier: 'HeaderGroup', position: 10 }] 
+  }   
+  Werks;
+  
+  @UI: { 
+    lineItem:       [{ position: 30, label: 'Location' }],
+    fieldGroup:     [{ qualifier: 'HeaderGroup', position: 20 }] 
+  }   
+  Lgort;
+
+  /* --- FIELDS MAPPED TO THE PRICING FIELDGROUP --- */
+  
+  @UI: { 
+    lineItem:       [{ position: 40, label: 'Net Price' }],
+    fieldGroup:     [{ qualifier: 'PricingGroup', position: 10 }] 
+  }  
+  Netpr;
+
+  /* --- FIELDS MAPPED TO THE ADMIN FIELDGROUP --- */
+  
+  @UI: { 
+    lineItem:       [{ position: 60, label: 'Created By' }],
+    fieldGroup:     [{ qualifier: 'AdminGroup', position: 10 }] 
+  }   
+  Localcreatedby;
+  
+  @UI: { 
+    lineItem:       [{ position: 70, label: 'Created At' }],
+    fieldGroup:     [{ qualifier: 'AdminGroup', position: 20 }] 
+  }   
+  Localcreatedat;
+  
+  @UI: { 
+    lineItem:       [{ position: 80, label: 'Changed By' }],
+    fieldGroup:     [{ qualifier: 'AdminGroup', position: 30 }] 
+  }   
+  Locallastchangedby;
+  
+  @UI: { 
+    lineItem:       [{ position: 90, label: 'Changed At' }],
+    fieldGroup:     [{ qualifier: 'AdminGroup', position: 40 }] 
+  }   
+  Locallastchangedat;
+  
+}

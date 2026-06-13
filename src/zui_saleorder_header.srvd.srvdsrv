@@ -1,0 +1,5 @@
+@EndUserText.label: 'Sale Order Header ODATA V4'
+define service ZUI_SALEORDER_HEADER {
+  expose zc_saleorder_header;
+  expose zc_saleorder_item;
+}

@@ -3,10 +3,10 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DDLS>
-    <DDLNAME>ZSALE_ORDER_ITEM</DDLNAME>
+    <DDLNAME>ZI_SALEORDER_HEADER</DDLNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
-    <DDTEXT>Sale Order Item</DDTEXT>
-    <SOURCE_TYPE>W</SOURCE_TYPE>
+    <DDTEXT>Interface view for Sale Order Header</DDTEXT>
+    <SOURCE_TYPE>P</SOURCE_TYPE>
    </DDLS>
   </asx:values>
  </asx:abap>
