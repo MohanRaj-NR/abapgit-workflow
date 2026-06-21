@@ -1,0 +1,5 @@
+CLASS zbi_r_saleorder_item DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zr_saleorder_header.
+ENDCLASS.
+
+CLASS zbi_r_saleorder_item IMPLEMENTATION.
+ENDCLASS.

@@ -1,0 +1,26 @@
+projection;
+strict ( 2 );
+use draft;
+
+define behavior for zc_saleorder_header alias header
+{
+  use create;
+  use update;
+  use delete;
+
+  use action Resume;
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Prepare;
+
+  use association _ITEM { create; with draft; }
+}
+
+define behavior for zc_saleorder_item alias item
+{
+  use update;
+  use delete;
+
+  use association _HEADER { with draft; }
+}

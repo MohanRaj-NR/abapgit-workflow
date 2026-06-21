@@ -13,6 +13,7 @@ provider contract transactional_interface
     Localcreatedat,
     Locallastchangedby,
     Locallastchangedat,
+    lastchangedat,
     /* Associations */
     _ITEM : redirected to composition child zi_saleorder_item
 }

@@ -17,9 +17,13 @@ association to parent ZR_Saleorder_Header as _HEADER
     meins as Meins,
     @Semantics.quantity.unitOfMeasure: 'Meins'
     kwmeng as Kwmeng,
+    @Semantics.user.createdBy: true
     localcreatedby as Localcreatedby,
+    @Semantics.systemDateTime.createdAt: true
     localcreatedat as Localcreatedat,
+    @Semantics.user.localInstanceLastChangedBy: true
     locallastchangedby as Locallastchangedby,
+    @Semantics.systemDateTime.localInstanceLastChangedAt: true
     locallastchangedat as Locallastchangedat,
     _HEADER 
 }

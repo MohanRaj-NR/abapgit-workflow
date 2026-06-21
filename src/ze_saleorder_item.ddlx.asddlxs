@@ -54,7 +54,16 @@ annotate entity zc_saleorder_item with
       targetQualifier: 'AdminGroup',
       label:           'Administrative Data',
       position:        30 
+    },
+    {
+      id:  'Inven_detail',
+      purpose : #STANDARD,
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'Inventory',
+      label: 'Inventory Details',
+      position : 40
     }
+    
   ]
 
   /* --- FIELDS MAPPED TO IDENTIFICATION --- */
@@ -75,13 +84,13 @@ annotate entity zc_saleorder_item with
   
   @UI: { 
     lineItem:       [{ position: 20, label: 'Plant' }],
-    fieldGroup:     [{ qualifier: 'HeaderGroup', position: 10 }] 
+    fieldGroup:     [{ qualifier: 'Inventory', position: 10 }] 
   }   
   Werks;
   
   @UI: { 
     lineItem:       [{ position: 30, label: 'Location' }],
-    fieldGroup:     [{ qualifier: 'HeaderGroup', position: 20 }] 
+    fieldGroup:     [{ qualifier: 'Inventory', position: 20 }] 
   }   
   Lgort;
 

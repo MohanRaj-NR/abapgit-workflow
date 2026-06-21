@@ -1,5 +1,0 @@
-CLASS zbp_sale_order_root DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zsale_order_root.
-ENDCLASS.
-
-CLASS zbp_sale_order_root IMPLEMENTATION.
-ENDCLASS.

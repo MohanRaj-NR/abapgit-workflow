@@ -9,8 +9,10 @@ define view entity zc_saleorder_item as projection on Zr_saleorder_item
     Posnr,
     Werks,
     Lgort,
-    Waers,
+    @Consumption.valueHelpDefinition: [{entity: {name: 'I_CurrencyStdVH', element: 'Currency' }, useForValidation: true }]
+    Waers,    
     Netpr,
+    @Consumption.valueHelpDefinition: [{ entity: { name: 'I_UnitOfMeasureStdVH' , element: 'UnitOfMeasure' } }]
     Meins,
     Kwmeng,
     Localcreatedby,
