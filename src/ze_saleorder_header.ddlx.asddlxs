@@ -11,8 +11,11 @@
 annotate entity zc_saleorder_header with
 {
 
+  /* ==========================================================
+     1. FACETS (Screen Layout Configuration)
+     ========================================================== */
   @UI.facet: [
-    /* 1. Header Facet (Appears at the very top of the Object Page) */
+    /* Top Header Area */
     {
       id: 'HeaderFacet', 
       purpose: #HEADER,
@@ -20,7 +23,7 @@ annotate entity zc_saleorder_header with
       targetQualifier: 'HeaderValues'
     },
                
-    /* 2. Main Body Collection (The first Tab/Section) */
+    /* Tab 1: General Information */
     {
       id: 'GeneralInfo',
       type: #COLLECTION,
@@ -28,7 +31,7 @@ annotate entity zc_saleorder_header with
       position: 10
     },
                
-    /* 2a. Fieldgroup inside the Collection */
+    /* Tab 1, Section A: Order Details */
     { 
       id: 'OrderValues',
       type: #FIELDGROUP_REFERENCE,
@@ -38,7 +41,7 @@ annotate entity zc_saleorder_header with
       targetQualifier: 'OrderValues'
     },
                
-    /* 2b. Fieldgroup inside the Collection */
+    /* Tab 1, Section B: Admin Data */
     { 
       id: 'OrderAudit',
       type: #FIELDGROUP_REFERENCE,
@@ -48,7 +51,7 @@ annotate entity zc_saleorder_header with
       targetQualifier: 'OrderAudit' 
     },
     
-    /* 3. Child Items Table (The second Tab/Section) */
+    /* Tab 2: Child Items Table */
     {
       id: 'OrderItems',
       purpose: #STANDARD,
@@ -59,14 +62,39 @@ annotate entity zc_saleorder_header with
     }
   ]
 
-  /* --- FIELDS --- */
+  /* ==========================================================
+     2. FIELDS & BUTTONS (UI Binding)
+     ========================================================== */
   
   @UI: { 
-    lineItem:       [{ position: 10, label: 'Sales Order', importance: #HIGH }], 
-    identification: [{ position: 10, label: 'Sales Order' }],  
-    fieldGroup:     [{ qualifier: 'HeaderValues', position: 10 }]   
+    /* --- LIST REPORT (MAIN TABLE) --- */
+    lineItem: [
+      { position: 10, label: 'Sales Order', importance: #HIGH },
+      
+      /* Instance Actions & Functions */
+      { type: #FOR_ACTION,   dataAction: 'copyOrder',          label: 'Copy Order',   position: 10 },
+      { type: #FOR_ACTION,   dataAction: 'blockOrder',         label: 'Block Orders', position: 20, invocationGrouping: #CHANGE_SET },
+      { type: #FOR_ACTION,   dataAction: 'SurgeCharge',         label: 'Surge Charge',  position: 30 },
+      { type: #FOR_ACTION,   dataAction: 'cleanupOldDrafts',   label: 'Cleanup Old Drafts', position: 40 }
+      
+    ], 
+    
+    /* --- OBJECT PAGE (INSIDE THE ORDER) --- */
+    identification: [
+      { position: 10, label: 'Sales Order' },
+      
+      /* Notice: Static actions are NOT here, because you are inside a specific order! */
+      { type: #FOR_ACTION,   dataAction: 'copyOrder',          label: 'Copy Order',   position: 10 },
+      { type: #FOR_ACTION,   dataAction: 'blockOrder',         label: 'Block Order',  position: 20 }
+    
+      
+    ],  
+    
+    /* --- HEADER FACET --- */
+    fieldGroup: [{ qualifier: 'HeaderValues', position: 10 }]   
   }
   Vbeln;
+  
   
   @UI: { 
     lineItem:       [{ position: 20, label: 'Total Order Value', importance: #HIGH }], 
@@ -75,30 +103,33 @@ annotate entity zc_saleorder_header with
   }   
   Netwr;
   
-  /* --- AUDIT FIELDS --- */
+  
+  /* ==========================================================
+     3. AUDIT FIELDS (Admin Tab)
+     ========================================================== */
   
   @UI: { 
     lineItem:       [{ position: 30, label: 'Created By', importance: #HIGH }], 
     fieldGroup:     [{ qualifier: 'OrderAudit', position: 10 }]   
   }       
-  Localcreatedby;
+  localcreatedby;
   
   @UI: { 
     lineItem:       [{ position: 40, label: 'Created At', importance: #HIGH }], 
     fieldGroup:     [{ qualifier: 'OrderAudit', position: 20 }]   
   }  
-  Localcreatedat;
+  localcreatedat;
   
   @UI: { 
     lineItem:       [{ position: 50, label: 'Changed By' }], 
     fieldGroup:     [{ qualifier: 'OrderAudit', position: 30 }]   
   } 
-  Locallastchangedby;
+  locallastchangedby;
   
   @UI: { 
     lineItem:       [{ position: 60, label: 'Changed At' }], 
     fieldGroup:     [{ qualifier: 'OrderAudit', position: 40 }]   
   }    
-  Locallastchangedat;
+  locallastchangedat;
 
 }

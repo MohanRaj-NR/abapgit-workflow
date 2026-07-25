@@ -14,7 +14,24 @@ define behavior for zc_saleorder_header alias header
   use action Discard;
   use action Prepare;
 
+  use action copyOrder;
+
   use association _ITEM { create; with draft; }
+
+  // 1. Instance Action
+  use action blockOrder;
+
+  // 3. Static Action
+  use action cleanupOldDrafts;
+
+  use action SurgeCharge;
+
+  // 5. Instance Function
+  use function checkCreditLimit;
+
+  // 6. Static Function
+  use function getTotalOrderCount;
+
 }
 
 define behavior for zc_saleorder_item alias item

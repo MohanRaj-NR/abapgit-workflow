@@ -26,6 +26,27 @@ CLASS lhc_header DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS cba_Item FOR MODIFY
       IMPORTING entities_cba FOR CREATE header\_Item.
+    METHODS copyOrder FOR MODIFY
+      IMPORTING keys FOR ACTION header~copyOrder.
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      IMPORTING keys REQUEST requested_features FOR header RESULT result.
+
+    METHODS checkCreditLimit FOR READ
+      IMPORTING keys FOR FUNCTION header~checkCreditLimit RESULT result.
+
+    METHODS getTotalOrderCount FOR READ
+      IMPORTING keys FOR FUNCTION header~getTotalOrderCount RESULT result.
+
+    METHODS blockOrder FOR MODIFY
+      IMPORTING keys FOR ACTION header~blockOrder RESULT result.
+
+    METHODS cleanupOldDrafts FOR MODIFY
+      IMPORTING keys FOR ACTION header~cleanupOldDrafts.
+
+    METHODS secureFinancialAudit FOR MODIFY
+      IMPORTING keys FOR ACTION header~secureFinancialAudit.
+    METHODS SurgeCharge FOR MODIFY
+      IMPORTING keys FOR ACTION header~SurgeCharge RESULT result.
 ENDCLASS.
 
 CLASS lhc_header IMPLEMENTATION.
@@ -132,6 +153,144 @@ CLASS lhc_header IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+  METHOD copyOrder.
+
+   " 1. Read the source Header AND its Items
+    READ ENTITIES OF ZR_Saleorder_Header IN LOCAL MODE
+      ENTITY header ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_read_headers)
+      ENTITY header BY \_ITEM ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_read_items)
+FAILED failed
+
+.
+
+    DATA lt_create_headers TYPE TABLE FOR CREATE ZR_Saleorder_Header.
+    DATA lt_create_items   TYPE TABLE FOR CREATE ZR_Saleorder_Header\_ITEM.
+
+    LOOP AT keys INTO DATA(ls_key).
+      ASSIGN lt_read_headers[ KEY entity Souuid = ls_key-Souuid ] TO FIELD-SYMBOL(<ls_original_header>).
+      IF sy-subrc = 0.
+
+        " ==========================================
+        " PART A: PREPARE THE HEADER
+        " ==========================================
+        DATA ls_create_header LIKE LINE OF lt_create_headers.
+
+        ls_create_header-%cid      = ls_key-%cid. " Fiori's tracker ID
+        ls_create_header-%is_draft = if_abap_behv=>mk-on.
+
+        " Copy fields, clear keys
+        ls_create_header-%data    = CORRESPONDING #( <ls_original_header> EXCEPT Souuid Vbeln ).
+        ls_create_header-%control = VALUE #( Netwr = if_abap_behv=>mk-on Waers = if_abap_behv=>mk-on ).
+
+        APPEND ls_create_header TO lt_create_headers.
+
+        " ==========================================
+        " PART B: PREPARE THE ITEMS
+        " ==========================================
+        DATA ls_cba_items LIKE LINE OF lt_create_items.
+
+        " LINK: Tell RAP these items belong to the Header we just created above!
+        ls_cba_items-%cid_ref  = ls_key-%cid.
+        ls_cba_items-%is_draft = if_abap_behv=>mk-on.
+
+        " Loop through only the items that belong to this specific Header
+        LOOP AT lt_read_items INTO DATA(ls_original_item) WHERE Parentid = <ls_original_header>-Souuid.
+          DATA ls_create_item LIKE LINE OF ls_cba_items-%target.
+
+          " We must invent a unique tracker ID for every new item row
+          ls_create_item-%cid      = |COPY_ITEM_{ ls_original_item-itemuuid }|.
+          ls_create_item-%is_draft = if_abap_behv=>mk-on.
+
+          " Copy fields, clear the old Item UUID and Parent UUID
+          ls_create_item-%data = CORRESPONDING #( ls_original_item EXCEPT itemuuid Parentid ).
+
+          " Tell RAP exactly which fields to save to the Draft table
+          ls_create_item-%control = VALUE #(
+            Posnr = if_abap_behv=>mk-on
+            Netpr = if_abap_behv=>mk-on
+            Kwmeng = if_abap_behv=>mk-on
+            werks = if_abap_behv=>mk-on
+            lgort = if_abap_behv=>mk-on
+          ).
+
+          APPEND ls_create_item TO ls_cba_items-%target.
+        ENDLOOP.
+
+        " Only add to the master item table if this order actually had items
+        IF ls_cba_items-%target IS NOT INITIAL.
+          APPEND ls_cba_items TO lt_create_items.
+        ENDIF.
+
+      ENDIF.
+    ENDLOOP.
+
+    " ==========================================
+    " PART C: EXECUTE DEEP CREATION
+    " ==========================================
+    MODIFY ENTITIES OF ZR_Saleorder_Header IN LOCAL MODE
+      ENTITY header
+        CREATE FROM lt_create_headers
+        " Add the deep creation command for the items
+        CREATE BY \_ITEM FROM lt_create_items
+      MAPPED   mapped
+      REPORTED reported
+      FAILED   failed.
+
+  ENDMETHOD.
+
+  METHOD get_instance_features.
+  ENDMETHOD.
+
+  METHOD checkCreditLimit.
+  ENDMETHOD.
+
+  METHOD getTotalOrderCount.
+  ENDMETHOD.
+
+  METHOD blockOrder.
+  ENDMETHOD.
+
+  METHOD cleanupOldDrafts.
+  ENDMETHOD.
+
+  METHOD secureFinancialAudit.
+  ENDMETHOD.
+
+  METHOD SurgeCharge.
+
+  READ ENTITIES OF ZR_Saleorder_Header IN LOCAL MODE
+      ENTITY header FIELDS ( Netwr ) WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_headers).
+
+    LOOP AT lt_headers INTO DATA(ls_header).
+      " 2. Calculate a new total (e.g., adding a flat 500 flat fee)
+      DATA(lv_new_total) = ls_header-Netwr + 500.
+
+      " 3. Update the database buffer
+      MODIFY ENTITIES OF ZR_Saleorder_Header IN LOCAL MODE
+        ENTITY header
+          UPDATE FIELDS ( Netwr )
+          WITH VALUE #( ( %tky  = ls_header-%tky
+                          Netwr = lv_new_total ) ).
+    ENDLOOP.
+
+    " -------------------------------------------------------------------
+    " 4. THE MAGIC STEP: Read the fresh data and return it!
+    " -------------------------------------------------------------------
+    " We read the header again because the buffer now has the new 500 fee applied
+    READ ENTITIES OF ZR_Saleorder_Header IN LOCAL MODE
+      ENTITY header ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_updated_headers).
+
+    " Move the updated rows directly into the 'result' parameter
+    result = VALUE #( FOR updated_row IN lt_updated_headers
+                      ( %tky   = updated_row-%tky
+                        %param = updated_row ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS lsc_ZR_SALEORDER_HEADER DEFINITION INHERITING FROM cl_abap_behavior_saver.
@@ -233,5 +392,8 @@ CLASS lsc_ZR_SALEORDER_HEADER IMPLEMENTATION.
 
   METHOD cleanup_finalize.
   ENDMETHOD.
+
+
+
 
 ENDCLASS.

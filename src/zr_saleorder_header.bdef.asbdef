@@ -1,74 +1,94 @@
-unmanaged implementation in class zbi_r_saleorder_header unique;
-strict ( 2 );
-with draft;
+    unmanaged implementation in class zbi_r_saleorder_header unique;
+    strict ( 2 );
+    with draft;
 
-define behavior for ZR_Saleorder_Header alias header
-implementation in class zbi_r_saleorder_header unique
-lock master
-total etag lastchangedat
-authorization master ( instance )
-etag master Locallastchangedat
-draft table zvbak_d
-{
-  create ( authorization : global );
-  update;
-  delete;
+    define behavior for ZR_Saleorder_Header alias header
+    implementation in class zbi_r_saleorder_header unique
+    lock master
+    total etag lastchangedat
+    authorization master ( instance )
+    etag master Locallastchangedat
+    draft table zvbak_d
+    {
+      create ( authorization : global );
+      update;
+      delete;
 
-  field ( numbering : managed, readonly ) Souuid;
+      field ( numbering : managed, readonly ) Souuid;
 
-  draft action Resume;
-  draft action Edit;
-  draft action Activate optimized;
-  draft action Discard;
-  draft determine action Prepare;
+      draft action Resume;
+      draft action Edit;
+      draft action Activate optimized;
+      draft action Discard;
+      draft determine action Prepare;
 
-  association _ITEM { create; with draft; }
-
-
-  mapping for zvbak
-  {
-    Souuid = souuid;
-    Vbeln = vbeln;
-    Waers = waers;
-    Netwr = netwr;
-    Localcreatedby = localcreatedby;
-    Localcreatedat = localcreatedat;
-    Locallastchangedby = locallastchangedby;
-    Locallastchangedat = locallastchangedat;
-    lastchangedat = last_changed_at;
-  }
-}
-
-define behavior for Zr_saleorder_item alias item
-implementation in class zbi_r_saleorder_item unique
-//early numbering
-lock dependent by _HEADER
-authorization dependent by _HEADER
-etag master Locallastchangedat
-draft table zvbap_d
-{
-  update;
-  delete;
-
-  field ( numbering : managed, readonly ) itemuuid;
-  field ( readonly ) Parentid;
-
-  association _HEADER { with draft; }
-
-  determination set_item on modify { create; }
+      association _ITEM { create; with draft; }
 
 
-  mapping for zvbap
-  {
-    itemuuid = itemuuid;
-    Parentid = parentid;
-    Posnr    = posnr;
-    Netpr    = netpr;
-    werks    = werks;
-    lgort    = lgort;
-    Localcreatedby = localcreatedby;
-    Localcreatedat = localcreatedat;
-    Locallastchangedby = locallastchangedby;
-    Locallastchangedat = locallastchangedat;
-  }
-}
+      mapping for zvbak
+      {
+        Souuid = souuid;
+        Vbeln = vbeln;
+        Waers = waers;
+        Netwr = netwr;
+        Localcreatedby = localcreatedby;
+        Localcreatedat = localcreatedat;
+        Locallastchangedby = locallastchangedby;
+        Locallastchangedat = locallastchangedat;
+        lastchangedat = last_changed_at;
+      }
+
+      factory action copyOrder [1];
+
+      // 1. STANDARD INSTANCE ACTION: Locks the order so it can't be edited.
+  action ( features : instance ) blockOrder result [1] $self;
+
+  action ( features : instance ) SurgeCharge result [1] $self;
+
+  // 3. STATIC ACTION: Global job. Finds all old Drafts and deletes them.
+  static action cleanupOldDrafts;
+
+  // 4. INTERNAL ACTION: Hidden math engine. Cannot be clicked from Fiori.
+  internal action secureFinancialAudit;
+
+  // 5. INSTANCE FUNCTION: Reads DB/API to check credit. Modifies nothing.
+  function checkCreditLimit result [1] bapi_msg;
+
+  // 6. STATIC FUNCTION: Global read. Returns total count of all orders.
+  static function ( authorization : none ) getTotalOrderCount  result [1] int1 ;
+
+    }
+
+    define behavior for Zr_saleorder_item alias item
+    implementation in class zbi_r_saleorder_item unique
+    //early numbering
+    lock dependent by _HEADER
+    authorization dependent by _HEADER
+    etag master Locallastchangedat
+    draft table zvbap_d
+    {
+      update;
+      delete;
+
+      field ( numbering : managed, readonly ) itemuuid;
+      field ( readonly ) Parentid;
+
+      association _HEADER { with draft; }
+
+      determination set_item on modify { create; }
+
+
+      mapping for zvbap
+      {
+        itemuuid = itemuuid;
+        Parentid = parentid;
+        Posnr    = posnr;
+        Netpr    = netpr;
+        werks    = werks;
+        lgort    = lgort;
+        Localcreatedby = localcreatedby;
+        Localcreatedat = localcreatedat;
+        Locallastchangedby = locallastchangedby;
+        Locallastchangedat = locallastchangedat;
+      }
+    }
